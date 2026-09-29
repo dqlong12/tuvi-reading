@@ -1,0 +1,12 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { Brand } from "@/components/Brand";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+type Synthesis = { headline:string; overview:string; tuvi:{title:string;body:string}; astrology:{title:string;body:string}; tarot:{title:string;body:string}; guidance:string[]; note:string };
+export default async function ResultPage({ params }: { params: Promise<{slug:string}> }) {
+  const {slug}=await params; const reading=await prisma.reading.findUnique({where:{slug},include:{profile:true}}); if (!reading) notFound(); const result=reading.synthesis as unknown as Synthesis;
+  return <main className="min-h-screen bg-[#f5f3ee] text-[#243532]"><header className="border-b border-[#d8d4ca] bg-[#fbfaf7]"><div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-5 sm:px-8"><Brand/><Link href="/reading/new/birth" className="text-sm font-semibold text-[#153c3a]">Tạo bài luận mới</Link></div></header><article className="mx-auto max-w-4xl px-5 py-12 sm:px-8 sm:py-16"><p className="text-xs font-semibold uppercase text-[#b6533d]">Bài luận dành cho {reading.profile.name}</p><h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight text-[#153c3a] sm:text-5xl">{result.headline}</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-[#596461]">{result.overview}</p><div className="my-10 h-px bg-[#cbc8bf]"/><div className="grid gap-5 md:grid-cols-3">{[result.tuvi,result.astrology,result.tarot].map(section=><section key={section.title} className="rounded-lg border border-[#d8d4ca] bg-white p-6"><h2 className="font-semibold text-[#b6533d]">{section.title}</h2><p className="mt-4 leading-7 text-[#53615e]">{section.body}</p></section>)}</div><section className="mt-10 border-y border-[#cbc8bf] py-8"><h2 className="text-2xl font-semibold text-[#153c3a]">Ba điểm neo</h2><ol className="mt-5 grid gap-4 sm:grid-cols-3">{result.guidance.map((item,index)=><li key={item} className="flex gap-3"><span className="font-serif text-2xl text-[#b6533d]">0{index+1}</span><span className="leading-7">{item}</span></li>)}</ol></section><p className="mt-8 text-sm leading-6 text-[#76807d]">{result.note}</p><Link href="/reading/new/birth" className="mt-8 inline-flex h-12 items-center gap-2 rounded-md bg-[#153c3a] px-5 font-semibold text-white"><Sparkles size={17}/>Đặt câu hỏi khác <ArrowRight size={17}/></Link></article></main>;
+}
